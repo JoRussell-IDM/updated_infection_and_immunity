@@ -10,7 +10,7 @@ import pandas as pd
 #micoscopy negative infections are a hidden state (sub detection threshold)
 
 df = pd.read_csv('C:\Uganda\Malariatherapy_2017_05_31.csv', index_col=0)
-df.Asexual = pd.to_numeric(df.Asexual,errors='coerce')
+df.Gametocytes = pd.to_numeric(df.Gametocytes,errors='coerce')
 
 def transmission_matrix_generator(df,t_start,t_end,interval):
     #define the time t
@@ -21,7 +21,7 @@ def transmission_matrix_generator(df,t_start,t_end,interval):
 
     #define the bins for stratification of parasite density
     density_strata = ['truezero','submicroscopic','10^1-10^2','10^2-10^3','10^3-10^4','10^4-10^5','10^5-10^6']
-    transition_matrix = pd.DataFrame(np.zeros((7,7)),index = density_strata, columns = density_strata)
+    transition_matrix = pd.DataFrame(np.zeros((7,7)),index = density_strata[::-1], columns = density_strata)
 
 
     for patient, measurements in df.groupby('id'):
@@ -33,26 +33,26 @@ def transmission_matrix_generator(df,t_start,t_end,interval):
             if np.logical_and((df_test['Day'][i] < t_cutoff_post),(df_test['Day'][i] > t_cutoff_pre)):
                 # current_strata = []
                 # end = None
-                if np.nansum(df_test.Asexual[i:]) == 0:
+                if np.nansum(df_test.Gametocytes[i:]) == 0:
                     current_strata = 'truezero'
-                elif df_test.Asexual[i] == 0:
+                elif df_test.Gametocytes[i] == 0:
                     current_strata = 'submicroscopic'
-                elif df_test.Asexual[i] <= 100:
+                elif df_test.Gametocytes[i] <= 100:
                     current_strata = '10^1-10^2'
-                elif df_test.Asexual[i]<= 1000:
+                elif df_test.Gametocytes[i]<= 1000:
                     current_strata = '10^2-10^3'
-                elif df_test.Asexual[i] <= 10000:
+                elif df_test.Gametocytes[i] <= 10000:
                     current_strata = '10^3-10^4'
-                elif df_test.Asexual[i]<= 100000:
+                elif df_test.Gametocytes[i]<= 100000:
                     current_strata = '10^4-10^5'
-                elif df_test.Asexual[i] <= 1000000:
+                elif df_test.Gametocytes[i] <= 1000000:
                     current_strata = '10^5-10^6'
 
             if df_test['Day'][i] < (max(df_test['Day'])- dt):
                 future_strata = []
-                future_density = df_test.Asexual[i+dt]
+                future_density = df_test.Gametocytes[i+dt]
 
-                if np.nansum(df_test.Asexual[i+dt:]) == 0:
+                if np.nansum(df_test.Gametocytes[i+dt:]) == 0:
                     future_strata = 'truezero'
                 elif future_density == 0:
                     future_strata = 'submicroscopic'
@@ -76,15 +76,15 @@ def transmission_matrix_generator(df,t_start,t_end,interval):
     for element in density_strata:
         transition_matrix[element] = transition_matrix[element]/(sum(transition_matrix[element])).astype(float)
 
-    transition_matrix[transition_matrix==0] = 'NaN'
-
+    transition_matrix[transition_matrix==0] = np.nan
+    # np.flipud(transition_matrix)
     mask = transition_matrix.isnull()
 
     return [transition_matrix, mask]
 
 if __name__ == '__main__':
     df = pd.read_csv('C:\Uganda\Malariatherapy_2017_05_31.csv', index_col=0)
-    df.Asexual = pd.to_numeric(df.Asexual, errors='coerce')
+    df.Gametocytes = pd.to_numeric(df.Gametocytes, errors='coerce')
     # t = 120
     # interval = 20
     # TM = transmission_matrix_generator(df,t,interval)
