@@ -139,10 +139,7 @@ if __name__ == '__main__':
         try:
             asexual_densities = smooth(asexuals[individual],window_len=4)
             gametocyte_densities = smooth(gametocytes[individual],window_len=4)
-
-
-
-
+# find the peak indices using a wavelet convolution
             asexual_peakind = signal.find_peaks_cwt(asexual_densities,widths = np.arange(1,30),max_distances=np.arange(1,30), min_length = 7)
             gametocyte_peakind = signal.find_peaks_cwt(gametocyte_densities,widths =  np.arange(1, 30),max_distances=np.arange(1,30), min_length=7)
             plt.figure(1)
